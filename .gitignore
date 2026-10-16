@@ -48,3 +48,12 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# OS files
+.DS_Store
+**/.DS_Store
+
+# Events data
+*events*.rds
+data/**/*events*
+
