@@ -25,6 +25,8 @@ fixture_base <- matches_raw %>%
     match_id,
     season = season.season_name,
     match_date,
+    competition = competition.competition_name,
+    competition_id = competition.competition_id,
     home_team_id = home_team.home_team_id,
     home_team = home_team.home_team_name,
     away_team_id = away_team.away_team_id,
