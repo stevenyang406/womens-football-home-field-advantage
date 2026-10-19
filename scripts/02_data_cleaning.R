@@ -1,10 +1,18 @@
-matches_raw <- readRDS(RAW("statsbomb_wsl_matches_raw.rds"))
-events_raw <- readRDS(RAW("statsbomb_wsl_events_raw.rds"))
+matches_raw <- readRDS(RAW("statsbomb_matches_raw.rds"))
+events_raw <- readRDS(RAW("statsbomb_events_raw.rds"))
 
 # Filter to shots and clean
 shots_clean <- events_raw %>%
   filter(type.name == "Shot") %>%
   allclean()
+
+matches_clean <- matches_raw %>%
+  # Removing final matches (applies only to NWSL final) because it is held at a neutral venue
+  filter(competition_stage.name != "Final") %>%
+  # Add a variable to indicate matches played without fans (applies only to FA WSL 2020/2021 season)
+  mutate(
+    no_fans = if_else(competition.competition_name == "FA Women's Super League" & season.season_name == "2020/2021", 1, 0)
+  )
 
 # Sum shot metrics by match and team
 team_match_shots <- shots_clean  %>%
@@ -20,13 +28,14 @@ team_match_shots <- shots_clean  %>%
   )
 
 # Reshape into one row per match
-fixture_base <- matches_raw %>%
+fixture_base <- matches_clean %>%
   select(
     match_id,
     season = season.season_name,
     match_date,
     competition = competition.competition_name,
     competition_id = competition.competition_id,
+    no_fans,
     home_team_id = home_team.home_team_id,
     home_team = home_team.home_team_name,
     away_team_id = away_team.away_team_id,
@@ -63,4 +72,54 @@ statsbomb_matches <- fixture_base %>%
     npxg_diff = home_npxg - away_npxg
   )
 
-saveRDS(statsbomb_matches, PROCESSED("statsbomb_wsl_matches_clean.rds"))
+home_rows <- statsbomb_matches %>%
+  transmute(
+    match_id, competition, competition_id, season, match_date, stadium_name, referee_name, no_fans,
+    team_id = home_team_id,
+    team = home_team,
+    opponent_id = away_team_id,
+    opponent = away_team,
+    is_home = 1,
+    goals = home_score,
+    goals_conceded = away_score,
+    goal_diff = score_diff,
+    shots = home_shots,
+    shots_on_target = home_shots_on_target,
+    xg = home_xg,
+    npxg = home_npxg,
+    penalties_taken = home_penalties_taken,
+    opp_xg = away_xg,
+    opp_npxg = away_npxg,
+    xg_diff = xg_diff,
+    npxg_diff = npxg_diff
+  )
+
+away_rows <- statsbomb_matches %>%
+  transmute(
+    match_id, competition, competition_id, season, match_date, stadium_name, referee_name, no_fans,
+    team_id = away_team_id,
+    team = away_team,
+    opponent_id = home_team_id,
+    opponent = home_team,
+    is_home = 0,
+    goals = away_score,
+    goals_conceded = home_score,
+    goal_diff = -score_diff,
+    shots = away_shots,
+    shots_on_target = away_shots_on_target,
+    xg = away_xg,
+    npxg = away_npxg,
+    penalties_taken = away_penalties_taken,
+    opp_xg = home_xg,
+    opp_npxg = home_npxg,
+    xg_diff = -xg_diff,
+    npxg_diff = -npxg_diff
+  )
+
+statsbomb_stacked <- bind_rows(home_rows, away_rows) %>%
+  arrange(match_id, desc(is_home))
+
+# Save both clean datasets
+saveRDS(statsbomb_matches, PROCESSED("statsbomb_matches_clean.rds"))
+saveRDS(statsbomb_stacked, PROCESSED("statsbomb_stacked_clean.rds"))
+
