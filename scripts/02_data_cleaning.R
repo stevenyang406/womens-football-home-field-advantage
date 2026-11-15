@@ -5,11 +5,11 @@ events_raw  <- readRDS(RAW("statsbomb_events_raw.rds"))
 
 matches_clean <- matches_raw %>%
   # Removing final matches (applies only to NWSL final) because they are held at neutral venues without home advantage
-  filter(competition_stage.name != "Final") %>%
-  # Add a variable to indicate matches played without fans (applies only to FA WSL 2020/2021 season)
-  mutate(
-    no_fans = if_else(competition.competition_name == "FA Women's Super League" & season.season_name == "2020/2021", 1, 0)
-  )
+  filter(competition_stage.name != "Final") #%>%
+  # # Add a variable to indicate matches played without fans (applies only to FA WSL 2020/2021 season)
+  # mutate(
+  #   no_fans = if_else(competition.competition_name == "FA Women's Super League" & season.season_name == "2020/2021", 1, 0)
+  # )
 
 # 1. Sum shot metrics by match and team
 team_match_shots <- events_raw %>%
@@ -61,7 +61,7 @@ fixture_base <- matches_clean %>%
     match_date,
     competition    = competition.competition_name,
     competition_id = competition.competition_id,
-    no_fans,
+    #no_fans,
     home_team_id   = home_team.home_team_id,
     home_team      = home_team.home_team_name,
     away_team_id   = away_team.away_team_id,
@@ -110,7 +110,7 @@ statsbomb_matches <- fixture_base %>%
 # 4. Build team-match stacked dataset (2 rows per match)
 home_rows <- statsbomb_matches %>%
   transmute(
-    match_id, competition, competition_id, season, match_date, stadium_name, referee_name, no_fans,
+    match_id, competition, competition_id, season, match_date, stadium_name, referee_name, #no_fans,
     team_id         = home_team_id,
     team            = home_team,
     opponent_id     = away_team_id,
@@ -141,7 +141,7 @@ home_rows <- statsbomb_matches %>%
 
 away_rows <- statsbomb_matches %>%
   transmute(
-    match_id, competition, competition_id, season, match_date, stadium_name, referee_name, no_fans,
+    match_id, competition, competition_id, season, match_date, stadium_name, referee_name, #no_fans,
     team_id         = away_team_id,
     team            = away_team,
     opponent_id     = home_team_id,
