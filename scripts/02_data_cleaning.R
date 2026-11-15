@@ -1,3 +1,5 @@
+source("000_header.R")
+
 matches_raw <- readRDS(RAW("statsbomb_matches_raw.rds"))
 events_raw <- readRDS(RAW("statsbomb_events_raw.rds"))
 
@@ -7,7 +9,7 @@ shots_clean <- events_raw %>%
   allclean()
 
 matches_clean <- matches_raw %>%
-  # Removing final matches (applies only to NWSL final) because it is held at a neutral venue
+  # Removing final matches (applies only to NWSL final) because they are held at neutral venues without home advantage
   filter(competition_stage.name != "Final") %>%
   # Add a variable to indicate matches played without fans (applies only to FA WSL 2020/2021 season)
   mutate(
@@ -69,7 +71,13 @@ statsbomb_matches <- fixture_base %>%
   mutate(
     score_diff = home_score - away_score,
     xg_diff = home_xg - away_xg,
-    npxg_diff = home_npxg - away_npxg
+    npxg_diff = home_npxg - away_npxg,
+    home_win = as.integer(home_score > away_score),
+    away_win = as.integer(away_score > home_score),
+    draw = as.integer(home_score == away_score),
+    home_points = case_when(home_win == 1 ~ 3, draw == 1 ~ 1, TRUE ~ 0),
+    away_points = case_when(away_win == 1 ~ 3, draw == 1 ~ 1, TRUE ~ 0),
+    total_points = home_points + away_points
   )
 
 home_rows <- statsbomb_matches %>%
@@ -117,9 +125,15 @@ away_rows <- statsbomb_matches %>%
   )
 
 statsbomb_stacked <- bind_rows(home_rows, away_rows) %>%
+  mutate(
+    win = as.integer(goal_diff > 0),
+    draw = as.integer(goal_diff == 0),
+    loss = as.integer(goal_diff < 0),
+    points = case_when(win == 1 ~ 3, draw == 1 ~ 1, TRUE ~ 0),
+    comp_season = paste(competition, season, sep = "_")
+  ) %>%
   arrange(match_id, desc(is_home))
 
 # Save both clean datasets
 saveRDS(statsbomb_matches, PROCESSED("statsbomb_matches_clean.rds"))
 saveRDS(statsbomb_stacked, PROCESSED("statsbomb_stacked_clean.rds"))
-
