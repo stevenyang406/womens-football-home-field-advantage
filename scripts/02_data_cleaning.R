@@ -3,11 +3,6 @@ source("000_header.R")
 matches_raw <- readRDS(RAW("statsbomb_matches_raw.rds"))
 events_raw <- readRDS(RAW("statsbomb_events_raw.rds"))
 
-# Filter to shots and clean
-shots_clean <- events_raw %>%
-  filter(type.name == "Shot") %>%
-  allclean()
-
 matches_clean <- matches_raw %>%
   # Removing final matches (applies only to NWSL final) because they are held at neutral venues without home advantage
   filter(competition_stage.name != "Final") %>%
@@ -17,7 +12,9 @@ matches_clean <- matches_raw %>%
   )
 
 # Sum shot metrics by match and team
-team_match_shots <- shots_clean  %>%
+team_match_shots <- events_raw %>%
+  # sort to shots only and remove penalty shootouts (period 5)
+  filter(type.name == "Shot", period != 5) %>%
   group_by(match_id, team.id) %>%
   summarise(
     shots = n(),
