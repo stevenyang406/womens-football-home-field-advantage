@@ -23,6 +23,10 @@ team_match_shots <- events_raw %>%
     xg              = sum(shot.statsbomb_xg, na.rm = TRUE),
     npxg            = sum(if_else(shot.type.name != "Penalty", shot.statsbomb_xg, 0), na.rm = TRUE),
     penalties_taken = sum(shot.type.name == "Penalty", na.rm = TRUE),
+    gax             = goals - xg,
+    goals_per_shot  = if_else(shots > 0, goals / shots, NA_real_),
+    npxg_per_shot   = if_else(shots > 0, npxg / shots, NA_real_),
+    goals_per_sot   = if_else(shots_on_target > 0, goals / shots_on_target, NA_real_),
     .groups = "drop"
   )
 
@@ -85,10 +89,12 @@ statsbomb_matches <- fixture_base %>%
     by = c("match_id", "away_team_id" = "away_team.id")
   ) %>%
   # Fill NAs with 0 for fixtures where a team had 0 recorded shots, fouls, or cards
+  # Note: Rate metrics (_per_shot, _per_sot) are kept as NA when shots/shots_on_target = 0
   mutate(across(
     c(starts_with("home_"), starts_with("away_")) &
       where(is.numeric) &
-      !c(home_score, away_score, home_team_id, away_team_id),
+      !c(home_score, away_score, home_team_id, away_team_id,
+         ends_with("_per_shot"), ends_with("_per_sot")),
     ~ replace_na(.x, 0)
   )) %>%
   # Construct outcome and differential variables
@@ -96,6 +102,7 @@ statsbomb_matches <- fixture_base %>%
     score_diff   = home_score - away_score,
     xg_diff      = home_xg - away_xg,
     npxg_diff    = home_npxg - away_npxg,
+    gax_diff     = home_gax - away_gax,
     foul_diff    = home_fouls - away_fouls,
     yellow_diff  = home_yellow_cards - away_yellow_cards,
     red_diff     = home_red_cards - away_red_cards,
@@ -124,16 +131,22 @@ home_rows <- statsbomb_matches %>%
     xg              = home_xg,
     npxg            = home_npxg,
     penalties_taken = home_penalties_taken,
+    gax             = home_gax,
+    goals_per_shot  = home_goals_per_shot,
+    npxg_per_shot   = home_npxg_per_shot,
+    goals_per_sot   = home_goals_per_sot,
     fouls           = home_fouls,
     yellow_cards    = home_yellow_cards,
     red_cards       = home_red_cards,
     opp_xg          = away_xg,
     opp_npxg        = away_npxg,
+    opp_gax         = away_gax,
     opp_fouls       = away_fouls,
     opp_yellow_cards= away_yellow_cards,
     opp_red_cards   = away_red_cards,
     xg_diff         = xg_diff,
     npxg_diff       = npxg_diff,
+    gax_diff        = gax_diff,
     foul_diff       = foul_diff,
     yellow_diff     = yellow_diff,
     red_diff        = red_diff
@@ -155,16 +168,22 @@ away_rows <- statsbomb_matches %>%
     xg              = away_xg,
     npxg            = away_npxg,
     penalties_taken = away_penalties_taken,
+    gax             = away_gax,
+    goals_per_shot  = away_goals_per_shot,
+    npxg_per_shot   = away_npxg_per_shot,
+    goals_per_sot   = away_goals_per_sot,
     fouls           = away_fouls,
     yellow_cards    = away_yellow_cards,
     red_cards       = away_red_cards,
     opp_xg          = home_xg,
     opp_npxg        = home_npxg,
+    opp_gax         = home_gax,
     opp_fouls       = home_fouls,
     opp_yellow_cards= home_yellow_cards,
     opp_red_cards   = home_red_cards,
     xg_diff         = -xg_diff,
     npxg_diff       = -npxg_diff,
+    gax_diff        = -gax_diff,
     foul_diff       = -foul_diff,
     yellow_diff     = -yellow_diff,
     red_diff        = -red_diff
