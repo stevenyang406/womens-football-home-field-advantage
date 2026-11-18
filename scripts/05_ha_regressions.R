@@ -113,30 +113,30 @@ modelsummary(
 # ==============================================================================
 # 4. Attacking style
 # ==============================================================================
-ols_disc <- list(
+ols_attack <- list(
   "Shots"           = lm_robust(shots ~ is_home,           data = stacked_clean, cluster = match_id, se_type = "stata"),
   "Shots on Target" = lm_robust(shots_on_target ~ is_home, data = stacked_clean, cluster = match_id, se_type = "stata"),
   "Goals"           = lm_robust(goals ~ is_home,           data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "xG" = lm_robust(xg ~ is_home,           data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "Goals Above Expected" = lm_robust(gax ~ is_home,           data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "npxg Per Shot"    = lm_robust(npxg_per_shot ~ is_home,    data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "Goals Per Shot on Target"       = lm_robust(goals_per_sot ~ is_home,       data = stacked_clean, cluster = match_id, se_type = "stata")
+  "xG"              = lm_robust(xg ~ is_home,              data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "Goals Above Expected"     = lm_robust(gax ~ is_home,           data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "npxg Per Shot"            = lm_robust(npxg_per_shot ~ is_home, data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "Goals Per Shot on Target" = lm_robust(goals_per_sot ~ is_home, data = stacked_clean, cluster = match_id, se_type = "stata")
 )
 
-fe_disc <- list(
+fe_attack <- list(
   "Shots"           = lm_robust(shots ~ is_home,           fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata"),
   "Shots on Target" = lm_robust(shots_on_target ~ is_home, fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata"),
   "Goals"           = lm_robust(goals ~ is_home,           fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "xG" = lm_robust(goals ~ is_home,           fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "Goals Above Expected"           = lm_robust(gax ~ is_home,           fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "npxg Per Shot"    = lm_robust(npxg_per_shot ~ is_home,    fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "Goals Per Shot on Target"       = lm_robust(goals_per_sot ~ is_home,       fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata")
+  "xG"              = lm_robust(xg ~ is_home,              fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "Goals Above Expected"     = lm_robust(gax ~ is_home,           fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "npxg Per Shot"            = lm_robust(npxg_per_shot ~ is_home, fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "Goals Per Shot on Target" = lm_robust(goals_per_sot ~ is_home, fixed_effects = ~ team:comp_season + opponent:comp_season, data = stacked_clean, cluster = match_id, se_type = "stata")
 )
 
 modelsummary(
   list(
-    "Panel A: Pooled OLS" = ols_disc,
-    "Panel B: Team-Season and Opponent-Season Fixed Effects" = fe_disc
+    "Panel A: Pooled OLS" = ols_attack,
+    "Panel B: Team-Season and Opponent-Season Fixed Effects" = fe_attack
   ),
   shape = "rbind",
   coef_map = c("is_home" = "Home"),
@@ -147,18 +147,21 @@ modelsummary(
   output = OUTPUT("stacked_ha_attacking.png")
 )
 
-####
-
+# ==============================================================================
+# 5. Disciplinary Actions & Penalties Awarded
+# ==============================================================================
 ols_disc <- list(
-  "Fouls"           = lm_robust(fouls ~ is_home,           data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "Yellow Cards"    = lm_robust(yellow_cards ~ is_home,    data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "Red Cards"       = lm_robust(red_cards ~ is_home,       data = stacked_clean, cluster = match_id, se_type = "stata")
+  "Penalties Awarded" = lm_robust(penalties_taken ~ is_home, data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "Fouls"             = lm_robust(fouls ~ is_home,           data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "Yellow Cards"      = lm_robust(yellow_cards ~ is_home,    data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "Red Cards"         = lm_robust(red_cards ~ is_home,       data = stacked_clean, cluster = match_id, se_type = "stata")
 )
 
 fe_disc <- list(
-  "Fouls"           = lm_robust(fouls ~ is_home,           fixed_effects = ~ team:comp_season + opponent:comp_season + referee_name, data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "Yellow Cards"    = lm_robust(yellow_cards ~ is_home,    fixed_effects = ~ team:comp_season + opponent:comp_season + referee_name, data = stacked_clean, cluster = match_id, se_type = "stata"),
-  "Red Cards"       = lm_robust(red_cards ~ is_home,       fixed_effects = ~ team:comp_season + opponent:comp_season + referee_name, data = stacked_clean, cluster = match_id, se_type = "stata")
+  "Penalties Awarded" = lm_robust(penalties_taken ~ is_home, fixed_effects = ~ team:comp_season + opponent:comp_season + referee_name, data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "Fouls"             = lm_robust(fouls ~ is_home,           fixed_effects = ~ team:comp_season + opponent:comp_season + referee_name, data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "Yellow Cards"      = lm_robust(yellow_cards ~ is_home,    fixed_effects = ~ team:comp_season + opponent:comp_season + referee_name, data = stacked_clean, cluster = match_id, se_type = "stata"),
+  "Red Cards"         = lm_robust(red_cards ~ is_home,       fixed_effects = ~ team:comp_season + opponent:comp_season + referee_name, data = stacked_clean, cluster = match_id, se_type = "stata")
 )
 
 modelsummary(
@@ -170,7 +173,29 @@ modelsummary(
   coef_map = c("is_home" = "Home"),
   stars = c("*" = 0.05, "**" = 0.01, "***" = 0.001),
   gof_map = c("nobs", "adj.r.squared"),
-  title = "Home Advantage in Disciplinary Actions",
+  title = "Home Advantage in Disciplinary Actions and Penalties",
   notes = "Standard errors clustered at the match level (Stata CR1 adjustment) in parentheses.",
   output = OUTPUT("stacked_ha_discipline.png")
+)
+
+# ==============================================================================
+# 6. Penalty Kick Conversion & Missing Under Pressure (Shot-Level, N = 285)
+# ==============================================================================
+penalties <- readRDS(PROCESSED("statsbomb_penalties.rds"))
+
+pen_model <- list(
+  "Penalty Miss Rate" = lm_robust(missed ~ is_away, data = penalties, se_type = "stata")
+)
+
+modelsummary(
+  pen_model,
+  coef_map = c(
+    "(Intercept)" = "Home Miss Rate (Intercept)",
+    "is_away"     = "Away Penalty Taker"
+  ),
+  stars = c("+" = 0.10, "*" = 0.05, "**" = 0.01, "***" = 0.001),
+  gof_map = c("nobs", "r.squared"),
+  title = "Effect of Venue on Penalty Kick Failure Rates",
+  notes = "Heteroskedasticity-robust standard errors in parentheses.",
+  output = OUTPUT("penalty_miss_regression.png")
 )
